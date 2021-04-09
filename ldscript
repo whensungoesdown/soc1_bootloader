@@ -1,0 +1,22 @@
+/*ENTRY(vectors)*/
+
+/*
+PHDRS
+{
+	headers PT_PHDR FILEHDR PHDRS;
+	text PT_LOAD FILEHDR PHDRS;
+}
+*/
+
+MEMORY
+{
+	RAM (rwx)        : ORIGIN = 0x0000, LENGTH = 64K
+	TEXTRAM (rw)     : ORIGIN = 0x10000, LENGTH = 2K
+}
+
+/* Define output sections */
+SECTIONS
+{
+	. = 0x0000;
+	.text : { *(.text) }
+}
