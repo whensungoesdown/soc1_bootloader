@@ -22,8 +22,11 @@
 #define USER_STACK		USER_END
 
 //-----------------------------------------------------------------------------//
-#define TEXT_VIDEO_RAM_START	0x10080
+#define TEXT_VIDEO_RAM_START	0x10000
 #define TEXT_VIDEO_RAM_END	0x107FF
 #define UARTDR			0x21000
+//-----------------------------------------------------------------------------//
+#define TEXT_COLUMN		80
+#define TEXT_ROW		30
 //-----------------------------------------------------------------------------//
 #endif
