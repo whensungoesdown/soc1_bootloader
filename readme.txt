@@ -1,3 +1,3 @@
 No pseudo code
 
-$ riscv32-unknown-linux-gnu-objdump -d -M no-aliases loader
+$ riscv32-unknown-linux-gnu-objdump -D -M no-aliases loader
