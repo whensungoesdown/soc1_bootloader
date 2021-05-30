@@ -1,6 +1,30 @@
 # soc1_bootloader
 bootloader C code for soc1 project
 
+## Memory layout
+
+`````````
+        // .byte .word .long
+        asm("beq x0, x0, reset_stub");         // 0x0000
+        asm("beq x0, x0, trap_stub");          // 0x0004                
+        asm __volatile__ (".long 0x00000000"); // 0x0008
+        asm __volatile__ (".long 0x00000000"); // 0x000c
+        asm __volatile__ (".long 0x00010000"); // 0x0010   CURSOR_POS
+        asm __volatile__ (".long 0x00000000"); // 0x0014   USER_KEY_HANDLER
+        asm __volatile__ (".long 0x00000000"); // 0x0018   USER_CODE_LOAD
+        asm __volatile__ (".long 0x00000000"); // 0x001C   USER_CODE_COUNT
+        asm __volatile__ (".long 0x00000000"); // 0x0020
+        asm __volatile__ (".long 0x00000000"); // 0x0024
+        asm __volatile__ (".long 0x00000000"); // 0x0028
+                                               // 0x002C
+`````````
+
+* 0x0000 reset entry
+* 0x0004 trap entry
+
+The rest are some global variables.
+
+
 ## How to create the bootloader
 After compiling the project, disassemble it using objdump. Put the following output into ram.mif.
 
