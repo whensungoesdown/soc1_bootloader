@@ -1,7 +1,7 @@
 CC=riscv32-unknown-linux-gnu-gcc
 LD=riscv32-unknown-linux-gnu-ld
 # -Qn no .comment section
-CFLAGS=-I. -mstrict-align -march=rv32id -Qn -static
+CFLAGS=-I. -mstrict-align -march=rv32id -Qn -static 
 DEPS =
 
 %.o: %.c $(DEPS)

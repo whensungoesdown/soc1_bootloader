@@ -32,6 +32,7 @@ void set_cursor_pos (int row, int column);
 char* hellostring =  "Hello World!";
 char* trapstring = "Trap: ";
 char* loadcodestring = "Code uploaded.";
+char* executestring = "Execute user code...";
 //-----------------------------------------------------------------------------//
 __attribute__((naked))
 void takesomespace (void)
@@ -43,11 +44,11 @@ void takesomespace (void)
 	asm __volatile__ (".long 0x00000000"); // 0x000c
 	asm __volatile__ (".long 0x00010000"); // 0x0010   CURSOR_POS
 	asm __volatile__ (".long 0x00000000"); // 0x0014   USER_KEY_HANDLER
-	asm __volatile__ (".long 0x00000010"); // 0x0018   USER_CODE_SIZE
-	asm __volatile__ (".long 0x00000000"); // 0x001C   BYTE_RECEIVED
-	asm __volatile__ (".long 0x00000000"); // 0x0020   DWORD_CNT
-	asm __volatile__ (".long 0x00000000"); // 0x0024   DWORD_TMP
-	asm __volatile__ (".long 0x00000000"); // 0x0028   
+	asm __volatile__ (".long 0x00000400"); // 0x0018   USER_CODE_SIZE  1kb
+	asm __volatile__ (".long 0x00000000"); // 0x001C   USER_CODE_LOADED
+	asm __volatile__ (".long 0x00000000"); // 0x0020   BYTE_RECEIVED
+	asm __volatile__ (".long 0x00000000"); // 0x0024   DWORD_CNT
+	asm __volatile__ (".long 0x00000000"); // 0x0028   DWORD_TMP
 	                                       // 0x002C
 }
 
@@ -55,8 +56,8 @@ void takesomespace (void)
 __attribute__((naked))
 void reset_stub (void)
 {
-	asm("addi x2, x0, 0x7FF");
-	asm("slli x2, x2, 0x1");
+	asm("addi x2, x0, 0xFF"); // reset use user stack, later it calls into received code
+	asm("slli x2, x2, 0x5");
 	reset();
 	while (1) {};
 }
@@ -78,8 +79,24 @@ void reset (void)
 {
 	set_cursor_pos(2, 0);
 	print_string(hellostring, 12);
+
+	//
+	// enable external interrupt
+	//
 	write_csr(0x304, 0x800);
 	write_csr(0x300, 0x8);
+
+	// call user code
+	while (1)
+	{
+		if (1 == *(int*)USER_CODE_LOADED)
+		{
+			set_cursor_pos(7, 0);
+			print_string(executestring, 20);
+			((void (*) (void)) USER_START) (); // 0x1000
+		}
+
+	}
 }
 
 void trap (void)
@@ -91,6 +108,22 @@ void trap (void)
 	int* pByteReceived = 0;
 
 	n = *(int*)UARTDR;
+
+	//
+	// if user code uploaded, then stops receiving code
+	// 
+	//
+	if (1 == *(int*)USER_CODE_LOADED)
+	{
+		//
+		// if user set key handler, calls it
+		//
+		if (0 != *(int*)USER_KEY_HANDLER)
+		{
+			((void (*) (void)) (*(int*)USER_KEY_HANDLER)) ();
+		}
+		return;
+	}
 
 	set_cursor_pos(3, 0);
 	print_string(trapstring, 6);
@@ -104,10 +137,29 @@ void trap (void)
 	pByteReceived = (int*)BYTE_RECEIVED;
 
 
-	//*pTmp <<= 8;
-	//*pTmp |= n;
-	*pTmp |= n;
-	*pTmp >>= 8;
+	if (0 == *pCnt)
+	{
+		*pTmp |= n;
+	}
+	else if (1 == *pCnt)
+	{
+		n <<= 8;
+		*pTmp |= n;
+	}
+	else if (2 == *pCnt)
+	{
+		n <<= 16;
+		*pTmp |= n;
+	}
+	else if (3 == *pCnt)
+	{
+		n <<= 24;
+		*pTmp |= n;
+	}
+	else
+	{
+		// should not be here
+	}
 	
 	*pCnt += 1;
 	if (*pCnt >= 4)
@@ -124,8 +176,9 @@ void trap (void)
 	{
 		set_cursor_pos(5, 0);
 		print_string(loadcodestring, 14);
-		set_cursor_pos(5, 0);
-		print_string(loadcodestring, 14);
+		
+		// code loaded
+		*(int*)USER_CODE_LOADED = 1;
 	}
 }
 
