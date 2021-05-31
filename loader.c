@@ -31,6 +31,7 @@ void set_cursor_pos (int row, int column);
 
 char* hellostring =  "Hello World!";
 char* trapstring = "Trap: ";
+char* loadcodestring = "Code uploaded.";
 //-----------------------------------------------------------------------------//
 __attribute__((naked))
 void takesomespace (void)
@@ -42,11 +43,11 @@ void takesomespace (void)
 	asm __volatile__ (".long 0x00000000"); // 0x000c
 	asm __volatile__ (".long 0x00010000"); // 0x0010   CURSOR_POS
 	asm __volatile__ (".long 0x00000000"); // 0x0014   USER_KEY_HANDLER
-	asm __volatile__ (".long 0x00000000"); // 0x0018   USER_CODE_LOAD
-	asm __volatile__ (".long 0x00000000"); // 0x001C   USER_CODE_COUNT
-	asm __volatile__ (".long 0x00000000"); // 0x0020
-	asm __volatile__ (".long 0x00000000"); // 0x0024
-	asm __volatile__ (".long 0x00000000"); // 0x0028
+	asm __volatile__ (".long 0x00000010"); // 0x0018   USER_CODE_SIZE
+	asm __volatile__ (".long 0x00000000"); // 0x001C   BYTE_RECEIVED
+	asm __volatile__ (".long 0x00000000"); // 0x0020   DWORD_CNT
+	asm __volatile__ (".long 0x00000000"); // 0x0024   DWORD_TMP
+	asm __volatile__ (".long 0x00000000"); // 0x0028   
 	                                       // 0x002C
 }
 
@@ -84,13 +85,46 @@ void reset (void)
 void trap (void)
 {
 	int n = 0;
+	int nUserCodeSize = 0;
+	int* pTmp = 0;
+	int* pCnt = 0;
+	int* pByteReceived = 0;
 
 	n = *(int*)UARTDR;
 
 	set_cursor_pos(3, 0);
 	print_string(trapstring, 6);
 	set_cursor_pos(3, 8);
-	print_string((char*)&n, 1); 
+	print_string((char*)&n, 1);
+
+	nUserCodeSize = *(int*)USER_CODE_SIZE;
+
+	pTmp = (int*)DWORD_TMP;
+	pCnt = (int*)DWORD_CNT;
+	pByteReceived = (int*)BYTE_RECEIVED;
+
+
+	*pTmp <<= 8;
+	*pTmp |= n;
+	
+	*pCnt += 1;
+	if (*pCnt >= 4)
+	{
+		*(int*)(USER_START + *pByteReceived) = *pTmp;
+
+		*pCnt = 0;
+		*pTmp = 0;
+		*pByteReceived += 4;
+	}
+
+
+	if (*pByteReceived >= nUserCodeSize)
+	{
+		set_cursor_pos(5, 0);
+		print_string(loadcodestring, 14);
+		set_cursor_pos(5, 0);
+		print_string(loadcodestring, 14);
+	}
 }
 
 

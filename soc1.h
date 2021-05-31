@@ -9,8 +9,11 @@
 // Global data
 #define CURSOR_POS		0x0010  // cursor position used by reset and trap
 #define USER_KEY_HANDLER	0x0014  // set by the user code
-#define USER_CODE_LOAD		0x0018
-#define USER_CODE_COUNT		0x001C
+#define USER_CODE_SIZE		0x0018
+// tmp for bootloader
+#define BYTE_RECEIVED		0x001C
+#define DWORD_CNT		0x0020
+#define DWORD_TMP		0x0024
 
 
 #define SYS_START		0x0000
