@@ -104,8 +104,10 @@ void trap (void)
 	pByteReceived = (int*)BYTE_RECEIVED;
 
 
-	*pTmp <<= 8;
+	//*pTmp <<= 8;
+	//*pTmp |= n;
 	*pTmp |= n;
+	*pTmp >>= 8;
 	
 	*pCnt += 1;
 	if (*pCnt >= 4)
