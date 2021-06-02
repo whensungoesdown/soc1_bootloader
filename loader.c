@@ -44,7 +44,7 @@ void takesomespace (void)
 	asm __volatile__ (".long 0x00000000"); // 0x000c
 	asm __volatile__ (".long 0x00010000"); // 0x0010   CURSOR_POS
 	asm __volatile__ (".long 0x00000000"); // 0x0014   USER_KEY_HANDLER
-	asm __volatile__ (".long 0x00000400"); // 0x0018   USER_CODE_SIZE  1kb
+	asm __volatile__ (".long 0x00000800"); // 0x0018   USER_CODE_SIZE  2kb
 	asm __volatile__ (".long 0x00000000"); // 0x001C   USER_CODE_LOADED
 	asm __volatile__ (".long 0x00000000"); // 0x0020   BYTE_RECEIVED
 	asm __volatile__ (".long 0x00000000"); // 0x0024   DWORD_CNT
@@ -62,17 +62,20 @@ void reset_stub (void)
 	while (1) {};
 }
 
-__attribute__((naked))
-void trap_stub (void)
+//__attribute__((naked))
+//void trap_stub (void)
+void __attribute__ ((interrupt))
+trap_stub (void)
 {
 	//asm("addi x2, x0, 0x7FF");
 	//asm("slli x2, x2, 0x1");
-	asm("addi sp,sp,-8");
-	asm("sw	  ra,4(sp)");
+
+//	asm("addi sp,sp,-8");
+//	asm("sw	  ra,4(sp)");
 	trap();
-	asm("lw	  ra,4(sp)");
-	asm("addi sp,sp,8");
-	asm("mret");
+//	asm("lw	  ra,4(sp)");
+//	asm("addi sp,sp,8");
+//	asm("mret");
 }
 
 void reset (void)
